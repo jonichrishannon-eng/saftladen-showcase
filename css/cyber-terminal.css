@@ -1,5 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
 
+/* Override background for the whole page */
+body {
+    font-family: 'Fira Code', monospace !important;
+    background: #0a0a0a !important;
+    color: #00ff41 !important;
+    min-height: 100vh;
+    position: relative;
+}
+
+body.red-alert-theme {
+    background: #1a0505 !important;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: -1;
+}
 
 .terminal-container {
     width: 100%;
@@ -96,14 +123,9 @@
     line-height: 1.6;
 }
 
-/* Fade in content */
+/* Hide content by default so JS can type it in without flickering */
 .terminal-content>* {
-    animation: fadeIn 0.4s ease-out forwards;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    opacity: 0;
 }
 
 
@@ -175,9 +197,6 @@
 
 /* Red Alert Theme Overrides */
 
-
-
-
 .terminal-container.red-alert {
     border-color: #ff3b30;
     box-shadow: 0 0 50px rgba(255, 59, 48, 0.3);
@@ -226,8 +245,6 @@
         linear-gradient(rgba(255, 59, 48, 0.08) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 59, 48, 0.08) 1px, transparent 1px);
 }
-
-
 
 .terminal-container.red-alert .terminal-title,
 .terminal-container.red-alert .control.maximize {
@@ -373,6 +390,84 @@
     }
 }
 
+/* Background Effects */
+.background-effects {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        linear-gradient(rgba(0, 255, 65, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 65, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #0044ff, transparent);
+    animation: scanMove 3s linear infinite;
+    box-shadow: 0 0 20px rgba(0, 38, 255, 0.8);
+}
+
+.floating-code {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(1px 1px at 25% 20%, rgba(0, 255, 65, 0.3), transparent),
+        radial-gradient(1px 1px at 75% 60%, rgba(0, 212, 255, 0.3), transparent),
+        radial-gradient(1px 1px at 50% 80%, rgba(191, 64, 255, 0.3), transparent);
+    background-size: 200px 200px;
+    animation: codeFloat 15s linear infinite;
+}
+
+@keyframes gridMove {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(50px, 50px);
+    }
+}
+
+@keyframes scanMove {
+    0% {
+        transform: translateY(-100vh);
+    }
+
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+@keyframes codeFloat {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-100px);
+    }
+}
 
 @keyframes pulse {
 
@@ -433,24 +528,6 @@
     font-family: 'Fira Code', monospace;
     font-size: 12px;
     padding: 10px;
-}
-
-.scan-line {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #0044ff, transparent);
-    animation: scanMove 4s linear infinite;
-    box-shadow: 0 0 20px rgba(0, 38, 255, 0.8);
-    z-index: 9999;
-    pointer-events: none;
-}
-
-@keyframes scanMove {
-    0% { transform: translateY(-100vh); }
-    100% { transform: translateY(100vh); }
 }
 
 /* Animations for JS-driven effects */
@@ -518,6 +595,13 @@
     }
 }
 
+/* By default (Show Some), hide specific grids */
+.terminal-container:not(.maximized) .off-data-grid,
+.terminal-container:not(.maximized) .matrix-display,
+.terminal-container:not(.maximized) .success,
+.terminal-container:not(.maximized) .terminal-line {
+    display: none !important;
+}
 
 .terminal-container.maximized {
     width: 98% !important;
@@ -525,24 +609,6 @@
     height: auto !important;
     min-height: 400px;
     transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.terminal-container.maximized .extra-info {
-    display: block !important;
-}
-
-.terminal-container.matrix-overload {
-    border-color: #00ff41;
-    box-shadow: 0 0 100px rgba(0, 255, 65, 0.6);
-    animation: jitter 0.1s infinite;
-}
-
-@keyframes jitter {
-    0% { transform: translate(0,0); }
-    25% { transform: translate(1px, -1px); }
-    50% { transform: translate(-1px, 1px); }
-    75% { transform: translate(1px, 1px); }
-    100% { transform: translate(0,0); }
 }
 
 /* ==========================================================================
@@ -553,8 +619,21 @@ body.red-alert-theme {
     background: #1a0505 !important;
 }
 
-body.red-alert-theme::before {
+body.red-alert-theme .grid-overlay {
     background:
-        linear-gradient(rgba(255, 59, 48, 0.2) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 59, 48, 0.2) 1px, transparent 1px) !important;
+        linear-gradient(rgba(255, 59, 48, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 59, 48, 0.08) 1px, transparent 1px) !important;
+}
+
+body.red-alert-theme .scan-line {
+    background: linear-gradient(90deg, transparent, #ff3b30, transparent) !important;
+    box-shadow: 0 0 20px rgba(255, 59, 48, 0.8) !important;
+}
+
+body.red-alert-theme .floating-code {
+    opacity: 0.5;
+    background-image:
+        radial-gradient(1px 1px at 25% 20%, rgba(255, 59, 48, 0.4), transparent),
+        radial-gradient(1px 1px at 75% 60%, rgba(255, 59, 48, 0.4), transparent),
+        radial-gradient(1px 1px at 50% 80%, rgba(255, 59, 48, 0.4), transparent) !important;
 }

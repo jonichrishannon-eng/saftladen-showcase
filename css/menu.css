@@ -1,0 +1,172 @@
+/* Jarvis/Matrix Menu Styles */
+.menu-container {
+    position: fixed;
+    top: 40px;
+    right: 50px;
+    z-index: 1000;
+}
+
+#menu-toggle {
+    display: none;
+}
+
+.menu-button {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid #00ff41;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+}
+
+.menu-button span {
+    display: block;
+    width: 30px;
+    height: 2px;
+    background: #00ff41;
+    transition: all 0.3s ease;
+}
+
+.menu-button:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.5);
+}
+
+/* Fullscreen Overlay */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    z-index: 999;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.5s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#menu-toggle:checked ~ .menu-overlay {
+    visibility: visible;
+    opacity: 1;
+}
+
+#menu-toggle:checked ~ .menu-container .menu-button {
+    border-color: #00d4ff;
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
+    transform: rotate(45deg);
+}
+
+#menu-toggle:checked ~ .menu-container .menu-button span:nth-child(1) {
+    transform: translateY(8px);
+}
+
+#menu-toggle:checked ~ .menu-container .menu-button span:nth-child(2) {
+    opacity: 0;
+}
+
+#menu-toggle:checked ~ .menu-container .menu-button span:nth-child(3) {
+    transform: translateY(-8px) rotate(90deg);
+}
+
+/* Matrix Background Canvas */
+#menu-matrix-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.3;
+}
+
+/* Jarvis Foreground UI */
+.jarvis-ui {
+    position: relative;
+    z-index: 1001;
+    width: 80%;
+    max-width: 1200px;
+    height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.circle-hud {
+    position: absolute;
+    border: 2px solid rgba(0, 212, 255, 0.2);
+    border-radius: 50%;
+    animation: rotateHUD 20s linear infinite;
+}
+
+.hud-1 { width: 600px; height: 600px; border-style: dashed; }
+.hud-2 { width: 550px; height: 550px; border-width: 4px; border-color: rgba(0, 212, 255, 0.1); animation-duration: 30s; animation-direction: reverse; }
+.hud-3 { width: 700px; height: 700px; border-style: double; opacity: 0.1; animation-duration: 60s; }
+
+@keyframes rotateHUD {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.menu-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    text-align: center;
+}
+
+.menu-link {
+    font-family: "Sansation", sans-serif;
+    font-size: 4rem;
+    color: #fff;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 10px;
+    position: relative;
+    transition: all 0.3s ease;
+    -webkit-text-stroke: 1px rgba(0, 212, 255, 0.3);
+    -webkit-text-fill-color: transparent;
+}
+
+.menu-link::before {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    color: #00d4ff;
+    -webkit-text-stroke: 1px #00d4ff;
+    -webkit-text-fill-color: #00d4ff;
+    overflow: hidden;
+    transition: width 0.5s ease;
+    text-shadow: 0 0 20px #00d4ff;
+}
+
+.menu-link:hover {
+    letter-spacing: 20px;
+}
+
+.menu-link:hover::before {
+    width: 100%;
+}
+
+.jarvis-info {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-family: 'Fira Code', monospace;
+    color: #00d4ff;
+    font-size: 0.8rem;
+    text-align: right;
+    pointer-events: none;
+}

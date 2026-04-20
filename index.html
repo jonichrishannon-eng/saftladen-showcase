@@ -7,24 +7,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Lato&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/cyber-terminal.css">
+    <link rel="stylesheet" href="css/menu.css">
 </head>
 
 <body>
-    <div class="scan-line"></div>
+    <input type="checkbox" id="menu-toggle">
+    <div class="menu-container">
+        <label for="menu-toggle" class="menu-button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+    </div>
 
-    <!-- Hamburger Menu -->
-    <input class="menu-icon" type="checkbox" id="menu-icon" name="menu-icon"/>
-    <label for="menu-icon" class="menu-label"></label>
-    <nav class="nav">     
-      <ul class="pt-5">
-        <li><a href="index.html">Scanner</a></li>
-        <li><a href="dev/Home.html">Home</a></li>
-        <li><a href="dev/Statistik.html">Statistik</a></li>
-		<li><a href="https://www.icpmuenchen.de/">
-            <img src="https://iili.io/f8QkeA7.png" alt="ICPLogo" style="width:200px;height:200px;"> 
-        </a></li>
-      </ul>
-    </nav>
+    <div class="menu-overlay">
+        <canvas id="menu-matrix-canvas"></canvas>
+        <div class="jarvis-ui">
+            <div class="circle-hud hud-1"></div>
+            <div class="circle-hud hud-2"></div>
+            <div class="circle-hud hud-3"></div>
+            <nav class="menu-nav">
+                <a href="index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
+                <a href="dev/Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
+                <a href="dev/Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
+            </nav>
+            <div class="jarvis-info">
+                SYSTEM: ACTIVE<br>
+                ENCRYPTION: 256-BIT<br>
+                USER: ADMIN
+            </div>
+        </div>
+    </div>
+
+    <div class="background-effects">
+        <div class="grid-overlay"></div>
+        <div class="scan-line"></div>
+        <div class="floating-code"></div>
+    </div>
 
     <a href="dev/Home.html" class="logo">
         <img src="https://iili.io/f8QkeA7.png" alt="Logo">
@@ -42,7 +61,7 @@
                         autocomplete="off">
                     <div class="input-glow"></div>
                 </div>
-                <button type="submit" class="barcode-btn">Suchen</button>
+                <button type="submit" id="barcode-btn" class="barcode-btn">Suchen</button>
             </form>
         </div>
 
@@ -53,12 +72,15 @@
 
     <!-- SQL.js for local database -->
     <script src="js/sql-wasm.js"></script>
-    <script>
+    <script type="module">
+        import { OpenFoodFacts } from 'https://esm.sh/@openfoodfacts/openfoodfacts-nodejs';
+
         const config = {
             locateFile: filename => `js/${filename}`
         };
 
         let db = null;
+        const offClient = new OpenFoodFacts(window.fetch);
 
         async function initDb() {
             try {
@@ -82,7 +104,7 @@
             }
         });
 
-        // Fuzzy matching and search logic
+        // 1.2BETA Search Algorithms
         function cleanString(str) {
             if (!str) return "";
             return str.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -104,6 +126,28 @@
             return matrix[b.length][a.length];
         }
 
+        function getNumbers(str) {
+            if (!str) return [];
+            const normalized = str.replace(/,/g, '.');
+            const matches = normalized.match(/[0-9]+([.][0-9]+)?/g);
+            return matches ? matches.map(Number) : [];
+        }
+
+        function hasQuantityMismatch(jtlName, offQuantity) {
+            if (!offQuantity || !jtlName) return false;
+            const jtlNums = getNumbers(jtlName);
+            const offNums = getNumbers(offQuantity);
+            if (jtlNums.length === 0 || offNums.length === 0) return false;
+            for (const on of offNums) {
+                for (const jn of jtlNums) {
+                    if (Math.abs(on - jn) < 0.001) return false;
+                    if (Math.abs(on - (jn * 1000)) < 0.01) return false;
+                    if (Math.abs((on * 1000) - jn) < 0.01) return false;
+                }
+            }
+            return true;
+        }
+
         async function handleSearch(event) {
             if (event) event.preventDefault();
             const searchInput = document.getElementById('search');
@@ -111,7 +155,7 @@
             if (!search) return;
 
             const resultsArea = document.getElementById('results-area');
-            resultsArea.innerHTML = '<div class="terminal-container"><div class="terminal-body"><div class="terminal-content" id="terminal-content">Scanning...</div></div></div>';
+            resultsArea.innerHTML = '<div class="terminal-container"><div class="terminal-body"><div class="terminal-content">Scanning...</div></div></div>';
 
             let debugLog = [`Scan: ${search}`];
             let offData = null;
@@ -119,16 +163,11 @@
             let finalMatch = null;
             let score = 0;
 
-            // 1. API Query (OpenFoodFacts)
+            // 1. API Query (OpenFoodFacts JS SDK)
             try {
-                const api_url = `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(search)}.json`;
-                console.log("Fetching API:", api_url);
-                const response = await fetch(api_url);
-                console.log("API Status:", response.status);
-                const json = await response.json();
-                console.log("API JSON:", json);
-                if (json.status === 1) {
-                    offData = json.product;
+                const { data, error } = await offClient.getProductV3(search);
+                if (data && data.product) {
+                    offData = data.product;
                     const brands = offData.brands || "";
                     const name = offData.product_name_de || offData.product_name || "";
                     if (brands && !name.toLowerCase().includes(brands.toLowerCase())) {
@@ -137,9 +176,10 @@
                     } else {
                         offName = name.trim();
                     }
+                } else if (error) {
+                    debugLog.push(`API Warning: ${error}`);
                 }
             } catch (err) {
-                console.error("API Error:", err);
                 debugLog.push(`API Error: ${err.message}`);
             }
             debugLog.push(`API: ${offName || "No name found on web"}`);
@@ -147,8 +187,9 @@
             // 2. Database Query
             if (db) {
                 try {
-                    const stmtDirect = db.prepare("SELECT fVKNetto, cName FROM tArtikel a LEFT JOIN tArtikelBeschreibung b ON a.kArtikel = b.kArtikel WHERE a.cArtNr = ? OR a.cBarcode = ?");
-                    stmtDirect.bind([search, search]);
+                    // Direct hit on ArtNr (Barcode is NULL in DB now)
+                    const stmtDirect = db.prepare("SELECT a.fVKNetto, b.cName FROM tArtikel a LEFT JOIN tArtikelBeschreibung b ON a.kArtikel = b.kArtikel WHERE a.cArtNr = ?");
+                    stmtDirect.bind([search]);
                     if (stmtDirect.step()) {
                         const row = stmtDirect.getAsObject();
                         finalMatch = { name: row.cName, preis: row.fVKNetto };
@@ -157,6 +198,7 @@
                     } else {
                         debugLog.push("Direct hit: NO");
                         if (offName) {
+                            debugLog.push("Fuzzy started...");
                             const cleanOFF = cleanString(offName);
                             const stmtFuzzy = db.prepare("SELECT b.cName, a.fVKNetto FROM tArtikel a JOIN tArtikelBeschreibung b ON a.kArtikel = b.kArtikel WHERE b.cName IS NOT NULL");
                             
@@ -184,6 +226,7 @@
                                 }
                             }
                             stmtFuzzy.free();
+                            debugLog.push(`Best Score: ${score.toFixed(1)}%`);
                         }
                     }
                     stmtDirect.free();
@@ -192,7 +235,12 @@
                 }
             }
 
-            const isRedTheme = (score < 35 && !finalMatch);
+            const qMismatch = (finalMatch && offData && offData.quantity) ? hasQuantityMismatch(finalMatch.name, offData.quantity) : false;
+            if (qMismatch) debugLog.push("WARNING: Quantity Mismatch detected!");
+
+            const isRedTheme = (score < 45 || qMismatch);
+            if (isRedTheme) debugLog.push("ALERT: ITEM_NOT_IN_DATABASE mode active.");
+
             renderResults(isRedTheme, search, finalMatch, offData, offName, score, debugLog);
             searchInput.value = '';
             searchInput.focus();
@@ -226,14 +274,14 @@
                         <div class="terminal-content" id="terminal-content">
             `;
 
-            if (finalMatch || offData) {
+            if ((finalMatch && score >= 35) || offData) {
                 html += `
                     <div class="terminal-line1">
                         <span class="prompt">root@Saftladen:~$</span>
                         <span class="command">display_product --id ${search}</span>
                     </div>
                     <div class="output">
-                        ${isRedTheme ? '<div class="item-not-in-db-banner">ITEM NOT IN EXAMPLE DATABASE</div>' : ''}
+                        ${isRedTheme ? '<div class="item-not-in-db-banner">ITEM NOT IN JTL DATABASE</div>' : ''}
                         
                         ${offData && offData.image_url ? `
                             <div class="product-image-container">
@@ -242,39 +290,38 @@
                         ` : ''}
 
                         <div class="cyber-product-name">
-                            ${(finalMatch && score > 35) ? finalMatch.name : (offName || 'UNKNOWN')}
+                            ${isRedTheme ? (offName || 'UNKNOWN') : (finalMatch ? finalMatch.name : (offName || 'UNKNOWN'))}
                         </div>
 
-                        ${finalMatch ? `
+                        ${(!isRedTheme && finalMatch) ? `
                             <div class="cyber-price-tag">
                                 ${(finalMatch.preis * 1.19).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                             </div>
                         ` : '<div class="cyber-price-tag glitch">NO_PRICE</div>'}
 
-                        <div class="off-data-grid">
-                            <div class="off-item"><span class="off-label">Menge:</span><span class="off-value">${offData ? offData.quantity || "N/A" : "N/A"}</span></div>
-                            <div class="off-item"><span class="off-label">Marken:</span><span class="off-value">${offData ? offData.brands || "N/A" : "N/A"}</span></div>
-                        </div>
-
-                        <div class="extra-info" style="display:none; margin-top: 20px; border-top: 1px solid #00ff41; padding-top: 20px;">
-                            <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                <div class="nutrients">
-                                    <h3 style="color: #00d4ff;">Nutritional Info</h3>
-                                    <pre style="font-size: 12px; color: #fff;">${offData && offData.nutriments ? JSON.stringify(offData.nutriments, null, 2) : "No nutrient data available"}</pre>
-                                </div>
-                                <div class="ingredients">
-                                    <h3 style="color: #00d4ff;">Ingredients</h3>
-                                    <p style="font-size: 14px; color: #fff;">${offData ? offData.ingredients_text_de || offData.ingredients_text || "No ingredients data available" : "N/A"}</p>
-                                </div>
+                        ${(!isRedTheme && score > 0) ? `
+                            <div class="info-row">
+                                <span class="info">► Match Score: ${score.toFixed(1)}%</span>
                             </div>
+                        ` : ''}
+
+                        <div class="off-data-grid">
+                            <div class="off-item"><span class="off-label">Menge:</span><span class="off-value">${offData ? offData.quantity || "NO_DATA" : "NO_DATA"}</span></div>
+                            <div class="off-item"><span class="off-label">Marken:</span><span class="off-value">${offData ? offData.brands || "NO_DATA" : "NO_DATA"}</span></div>
+                            <div class="off-item"><span class="off-label">Verpackung:</span><span class="off-value">${offData ? offData.packaging || "NO_DATA" : "NO_DATA"}</span></div>
+                            <div class="off-item"><span class="off-label">Kategorien:</span><span class="off-value">${offData ? offData.categories || "NO_DATA" : "NO_DATA"}</span></div>
+                            <div class="off-item"><span class="off-label">Labels:</span><span class="off-value">${offData ? offData.labels || "NO_DATA" : "NO_DATA"}</span></div>
+                            <div class="off-item"><span class="off-label">Herstellung:</span><span class="off-value">${offData ? offData.manufacturing_places || "NO_DATA" : "NO_DATA"}</span></div>
+                            <div class="off-item"><span class="off-label">Läden:</span><span class="off-value">${offData ? offData.stores || "NO_DATA" : "NO_DATA"}</span></div>
+                            <div class="off-item"><span class="off-label">Länder:</span><span class="off-value">${offData ? offData.countries || "NO_DATA" : "NO_DATA"}</span></div>
                         </div>
 
                         <div class="terminal-line">
                             <span class="prompt">root@Saftladen:~$</span>
-                            <span class="command">show_logs --monitor</span>
+                            <span class="command">matrix_view</span>
                         </div>
                         <div class="output">
-                            ${debugLog.map(log => `<div class="success">✓ ${log}</div>`).join('')}
+                            <div class="matrix-display" id="matrix-display"></div>
                         </div>
                     </div>
                 `;
@@ -283,27 +330,40 @@
             }
 
             html += `
+                        <div class="terminal-line">
+                            <span class="prompt">root@Saftladen:~$</span>
+                            <span class="command">show_logs --monitor</span>
+                        </div>
+                        <div class="output">
+                            ${debugLog.map(log => `<div class="success">✓ ${log}</div>`).join('')}
+                        </div>
+
+                        <div class="terminal-line">
+                            <span class="prompt">root@Saftladen:~$</span>
+                            <span class="command" id="typing-command"></span>
+                            <span class="cursor">█</span>
                         </div>
                     </div>
-                    <div class="terminal-footer">
-                        <div class="footer-info">
-                            <span>CONNECTION: SECURE</span>
-                            <span>UPTIME: ${new Date().toLocaleTimeString()}</span>
-                            <span>v1.3 Showcase</span>
-                        </div>
+                </div>
+                <div class="terminal-footer">
+                    <div class="footer-info">
+                        <span>CONNECTION: SECURE</span>
+                        <span>UPTIME: ${new Date().toLocaleTimeString()}</span>
+                        <span>v1.3 Showcase</span>
                     </div>
                 </div>
             `;
 
             resultsArea.innerHTML = html;
             if (window.cyberTerminalInstance) {
-                window.cyberTerminalInstance.typeExistingContent();
+                window.cyberTerminalInstance.refresh(); // Staggered animations for new results
             }
         }
 
         document.getElementById('barcode-form').addEventListener('submit', handleSearch);
     </script>
     <script src="js/cyber-terminal.js"></script>
+    <script src="js/menu.js"></script>
 </body>
 
 </html>
