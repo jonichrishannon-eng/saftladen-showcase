@@ -10,6 +10,7 @@
 </head>
 
 <body>
+    <div class="scan-line"></div>
 
     <!-- Hamburger Menu -->
     <input class="menu-icon" type="checkbox" id="menu-icon" name="menu-icon"/>
@@ -196,6 +197,12 @@
         function renderResults(isRedTheme, search, finalMatch, offData, offName, score, debugLog) {
             const resultsArea = document.getElementById('results-area');
             const themeClass = isRedTheme ? 'red-alert' : '';
+
+            if (isRedTheme) {
+                document.body.classList.add('red-alert-theme');
+            } else {
+                document.body.classList.remove('red-alert-theme');
+            }
             
             let html = `
                 <div class="terminal-container ${themeClass}">
@@ -243,6 +250,19 @@
                         <div class="off-data-grid">
                             <div class="off-item"><span class="off-label">Menge:</span><span class="off-value">${offData ? offData.quantity || "N/A" : "N/A"}</span></div>
                             <div class="off-item"><span class="off-label">Marken:</span><span class="off-value">${offData ? offData.brands || "N/A" : "N/A"}</span></div>
+                        </div>
+
+                        <div class="extra-info" style="display:none; margin-top: 20px; border-top: 1px solid #00ff41; padding-top: 20px;">
+                            <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="nutrients">
+                                    <h3 style="color: #00d4ff;">Nutritional Info</h3>
+                                    <pre style="font-size: 12px; color: #fff;">${offData && offData.nutriments ? JSON.stringify(offData.nutriments, null, 2) : "No nutrient data available"}</pre>
+                                </div>
+                                <div class="ingredients">
+                                    <h3 style="color: #00d4ff;">Ingredients</h3>
+                                    <p style="font-size: 14px; color: #fff;">${offData ? offData.ingredients_text_de || offData.ingredients_text || "No ingredients data available" : "N/A"}</p>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="terminal-line">
