@@ -119,18 +119,25 @@ class CyberTerminal {
         const terminal = control.closest('.terminal-container');
 
         switch(index) {
-            case 0: // Close
+            case 0: // Close (Glitch)
                 this.triggerScreenGlitch(terminal);
                 break;
-            case 1: // Minimize
-                terminal.style.transform = 'scaleY(0.1)';
-                setTimeout(() => {
-                    terminal.style.transform = 'scaleY(1)';
-                }, 800);
+            case 1: // Minimize (Matrix Overload)
+                this.matrixOverload(terminal);
                 break;
             case 2: // Maximize
                 terminal.classList.toggle('maximized');
                 break;
+        }
+    }
+
+    matrixOverload(terminal) {
+        const isOverloaded = terminal.classList.toggle('matrix-overload');
+        if (isOverloaded) {
+            // Speed up matrix rain
+            this.overloadInterval = setInterval(() => this.addMatrixColumn(terminal.querySelector('.matrix-display') || terminal), 50);
+        } else {
+            clearInterval(this.overloadInterval);
         }
     }
 
