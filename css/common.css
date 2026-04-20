@@ -20,13 +20,29 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000205;
-  color: #fff;
-  font-family: "Exo 2", sans-serif;
+  background-color: #0a0a0a;
+  color: #00ff41;
+  font-family: 'Fira Code', monospace;
   margin: 0; 
   height: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+      linear-gradient(rgba(0, 255, 65, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 65, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+  z-index: -1;
 }
 
 *,
@@ -493,11 +509,11 @@ body {
 }
 
 .barcode-btn {
-  background: linear-gradient(45deg, var(--clr-1), var(--clr-4));
+  background: #00ff41;
   border: none;
   padding: 1rem;
   border-radius: 12px;
-  color: white;
+  color: #000;
   font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
@@ -640,9 +656,8 @@ html.lenis, html.lenis body {
 }
 
 .fade-in-up {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .fade-in-up.visible {

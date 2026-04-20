@@ -17,41 +17,11 @@ class CyberTerminal {
 
         const lines = Array.from(terminalContent.children);
 
-        // Hide all initially
-        lines.forEach(line => line.style.opacity = '0');
-
-        for (const line of lines) {
-            line.style.opacity = '1';
-            if (line.classList.contains('terminal-line') || line.classList.contains('terminal-line1')) {
-                const command = line.querySelector('.command');
-                if (command) {
-                    const text = command.textContent;
-                    command.textContent = '';
-                    await this.typeText(command, text, 30);
-                }
-            } else {
-                // For outputs, maybe a slight delay
-                line.style.transition = 'opacity 0.4s ease-in';
-                line.style.opacity = '1';
-                await new Promise(r => setTimeout(r, 100));
-            }
-
-            terminalContent.scrollTop = terminalContent.scrollHeight;
-        }
-    }
-
-    typeText(element, text, speed) {
-        return new Promise(resolve => {
-            let i = 0;
-            const timer = setInterval(() => {
-                element.textContent += text[i];
-                i++;
-                if (i >= text.length) {
-                    clearInterval(timer);
-                    resolve();
-                }
-            }, speed);
+        lines.forEach((line, index) => {
+            line.style.animationDelay = `${index * 0.1}s`;
         });
+
+        terminalContent.scrollTop = terminalContent.scrollHeight;
     }
 
     createMatrixRain() {
