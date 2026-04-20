@@ -6,8 +6,75 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <style>
+        .guide-section {
+            padding: 100px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .guide-step {
+            margin-bottom: 80px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+        .guide-step.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .step-number {
+            font-family: "Sansation", sans-serif;
+            font-size: 5rem;
+            color: var(--clr-1);
+            opacity: 0.3;
+            line-height: 1;
+        }
+        .step-content h2 {
+            font-family: "Sansation", sans-serif;
+            font-size: 2.5rem;
+            margin: -2rem 0 1rem 2rem;
+            color: #fff;
+            text-shadow: 0 0 10px var(--clr-1);
+        }
+        .step-content p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-left: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
 </head>
 <body>
+    <input type="checkbox" id="menu-toggle">
+    <div class="menu-container">
+        <label for="menu-toggle" class="menu-button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+    </div>
+
+    <div class="menu-overlay">
+        <canvas id="menu-matrix-canvas"></canvas>
+        <div class="jarvis-ui">
+            <div class="circle-hud hud-1"></div>
+            <div class="circle-hud hud-2"></div>
+            <div class="circle-hud hud-3"></div>
+            <nav class="menu-nav">
+                <a href="../index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
+                <a href="Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
+                <a href="Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
+            </nav>
+            <div class="jarvis-info">
+                SYSTEM: ACTIVE<br>
+                ENCRYPTION: 256-BIT<br>
+                USER: ADMIN
+            </div>
+        </div>
+    </div>
+
     <div class="scan-line"></div>
     <a href="../index.html" class="logo">
         <img src="https://iili.io/f8QkeA7.png" alt="Logo">
@@ -15,23 +82,67 @@
     </a>
 
     <div class="content">
-        <h1 class="title aurora-text">SaftladenSuite pro max</h1>
-        <p class="subtitle">Willkommen beim Showcase v1.3</p>
+        <h1 class="title aurora-text">Willkommen</h1>
+        <p class="subtitle">Entdecken Sie die Zukunft des POS</p>
+
+        <div class="guide-section">
+            <div class="guide-step">
+                <div class="step-number">01</div>
+                <div class="step-content">
+                    <h2>Scanner Starten</h2>
+                    <p>Navigieren Sie zum Scanner und halten Sie Ihren Barcode bereit. Das System erkennt automatisch die Artikelnummer und initiiert einen synchronisierten Datenbankabgleich.</p>
+                </div>
+            </div>
+
+            <div class="guide-step">
+                <div class="step-number">02</div>
+                <div class="step-content">
+                    <h2>Hybrid Search Logic</h2>
+                    <p>Unsere v1.3 Engine nutzt eine Kombination aus OpenFoodFacts Live-Daten und lokaler SQL-Integrität. Wenn ein Artikel nicht direkt gefunden wird, übernimmt der fuzzy-gewichtetete Levenshtein-Algorithmus (78% Wort / 22% Edit-Distanz).</p>
+                </div>
+            </div>
+
+            <div class="guide-step">
+                <div class="step-number">03</div>
+                <div class="step-content">
+                    <h2>Terminal Interface</h2>
+                    <p>Erleben Sie Echtzeit-Feedback in unserem Cyber-Terminal. Von der Matrix-Datenstrom-Visualisierung bis hin zur automatischen Mengen-Diskrepanz-Prüfung – alles für maximale Transparenz.</p>
+                </div>
+            </div>
+
+            <div class="guide-step">
+                <div class="step-number">04</div>
+                <div class="step-content">
+                    <h2>Statistik & Analyse</h2>
+                    <p>Überprüfen Sie Ihren Lagerbestand in der Statistik-Ansicht. Alle Daten werden lokal in einer performanten SQLite-Instanz verarbeitet, bereit für den nächsten Rehaul.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Hamburger Menu -->
-    <input class="menu-icon" type="checkbox" id="menu-icon" name="menu-icon"/>
-    <label for="menu-icon" class="menu-label"></label>
-    <nav class="nav">     
-      <ul class="pt-5">
-        <li><a href="../index.html">Scanner</a></li>
-        <li><a href="Home.html">Home</a></li>
-        <li><a href="Statistik.html">Statistik</a></li>
-		<li><a href="https://www.icpmuenchen.de/">
-            <img src="https://iili.io/f8QkeA7.png" alt="ICPLogo" style="width:200px;height:200px;"> 
-        </a></li>
-      </ul>
-    </nav>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/dist/lenis.min.js"></script>
+    <script src="../js/menu.js"></script>
+    <script>
+        // Initialize Lenis for Smooth Scrolling
+        const lenis = new Lenis();
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
 
+        // Scroll Intersection Observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.guide-step').forEach(step => {
+            observer.observe(step);
+        });
+    </script>
 </body>
 </html>

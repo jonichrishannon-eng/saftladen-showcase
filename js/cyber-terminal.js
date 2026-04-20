@@ -1,14 +1,47 @@
 class CyberTerminal {
     constructor() {
         this.matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-        this.init();
+        this.matrixInterval = null;
+        this.setupGlobalListeners();
+        this.startGlobalAnimations();
     }
 
-    init() {
-        this.createMatrixRain();
-        this.addTerminalInteractivity();
-        this.startSystemAnimations();
+    // Called once on page load
+    setupGlobalListeners() {
+        document.body.addEventListener('click', (e) => {
+            if (e.target.closest('.terminal-container')) {
+                this.createRipple(e);
+            }
+        });
+
+        document.body.addEventListener('click', (e) => {
+            const control = e.target.closest('.control');
+            if (control) {
+                const controls = Array.from(control.parentNode.children);
+                const index = controls.indexOf(control);
+                this.handleControlClick(control, index);
+            }
+        });
+    }
+
+    // Called once on page load
+    startGlobalAnimations() {
+        setInterval(() => {
+            const statusIndicator = document.querySelector('.status-indicator');
+            if (statusIndicator) {
+                statusIndicator.style.transform = 'scale(1.5)';
+                setTimeout(() => {
+                    statusIndicator.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }, 2000);
+    }
+
+    // Called whenever new terminal content is injected
+    refresh() {
+        this.stopMatrixRain();
         this.typeExistingContent();
+        this.startMatrixRain();
     }
 
     async typeExistingContent() {
@@ -18,22 +51,44 @@ class CyberTerminal {
         const lines = Array.from(terminalContent.children);
 
         lines.forEach((line, index) => {
-            line.style.animationDelay = `${index * 0.1}s`;
+            line.style.opacity = '0';
+            line.style.transition = 'opacity 0.4s ease-in-out';
+            line.style.animation = 'none';
+
+            Array.from(line.querySelectorAll('*')).forEach(child => {
+                child.style.opacity = '1';
+            });
+
+            setTimeout(() => {
+                line.style.opacity = '1';
+            }, index * 100);
         });
 
         terminalContent.scrollTop = terminalContent.scrollHeight;
     }
 
-    createMatrixRain() {
+    startMatrixRain() {
         const matrixDisplay = document.getElementById('matrix-display');
         if (!matrixDisplay) return;
 
-        setInterval(() => {
+        this.matrixInterval = setInterval(() => {
             this.addMatrixColumn(matrixDisplay);
         }, 150);
     }
 
+    stopMatrixRain() {
+        if (this.matrixInterval) {
+            clearInterval(this.matrixInterval);
+            this.matrixInterval = null;
+        }
+    }
+
     addMatrixColumn(container) {
+        if (!container || !container.isConnected) {
+            this.stopMatrixRain();
+            return;
+        }
+
         const terminal = container.closest('.terminal-container');
         const isRed = terminal && terminal.classList.contains('red-alert');
         const mainColor = isRed ? '#ff3b30' : '#00ff41';
@@ -52,7 +107,6 @@ class CyberTerminal {
             text-shadow: 0 0 5px ${shadowColor};
         `;
 
-
         let matrixString = '';
         for (let i = 0; i < 8; i++) {
             matrixString += this.matrixChars[Math.floor(Math.random() * this.matrixChars.length)] + '<br>';
@@ -68,26 +122,9 @@ class CyberTerminal {
         }, 3000);
     }
 
-    addTerminalInteractivity() {
-        // Using delegation to handle dynamic results
-        document.body.addEventListener('click', (e) => {
-            if (e.target.closest('.terminal-container')) {
-                this.createRipple(e);
-            }
-        });
-
-        document.body.addEventListener('click', (e) => {
-            const control = e.target.closest('.control');
-            if (control) {
-                const controls = Array.from(control.parentNode.children);
-                const index = controls.indexOf(control);
-                this.handleControlClick(control, index);
-            }
-        });
-    }
-
     createRipple(e) {
         const terminal = e.target.closest('.terminal-container');
+        if (!terminal) return;
         const rect = terminal.getBoundingClientRect();
         const ripple = document.createElement('div');
 
@@ -116,38 +153,19 @@ class CyberTerminal {
         const terminal = control.closest('.terminal-container');
 
         switch(index) {
-            case 0: // Close (Glitch)
+            case 0: // Close
                 this.triggerScreenGlitch(terminal);
                 break;
-            case 1: // Minimize (Matrix Overload)
-                this.matrixOverload(terminal);
+            case 1: // Minimize
+                terminal.style.transform = 'scaleY(0.1)';
+                setTimeout(() => {
+                    terminal.style.transform = 'scaleY(1)';
+                }, 800);
                 break;
             case 2: // Maximize
                 terminal.classList.toggle('maximized');
                 break;
         }
-    }
-
-    matrixOverload(terminal) {
-        const isOverloaded = terminal.classList.toggle('matrix-overload');
-        if (isOverloaded) {
-            // Speed up matrix rain
-            this.overloadInterval = setInterval(() => this.addMatrixColumn(terminal.querySelector('.matrix-display') || terminal), 50);
-        } else {
-            clearInterval(this.overloadInterval);
-        }
-    }
-
-    startSystemAnimations() {
-        setInterval(() => {
-            const statusIndicator = document.querySelector('.status-indicator');
-            if (statusIndicator) {
-                statusIndicator.style.transform = 'scale(1.5)';
-                setTimeout(() => {
-                    statusIndicator.style.transform = 'scale(1)';
-                }, 200);
-            }
-        }, 2000);
     }
 
     triggerScreenGlitch(terminal) {
@@ -164,7 +182,4 @@ class CyberTerminal {
     }
 }
 
-// Don't auto-instantiate if we want to control it from index.html
-// But the original had it. I'll keep it for simple pages, 
-// and in handleSearch I'll just call the method if global instance exists.
 window.cyberTerminalInstance = new CyberTerminal();
