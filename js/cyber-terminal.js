@@ -69,9 +69,6 @@ class CyberTerminal {
     }
 
     addTerminalInteractivity() {
-        const terminal = document.querySelector('.terminal-container');
-        if (!terminal) return;
-
         // Using delegation to handle dynamic results
         document.body.addEventListener('click', (e) => {
             if (e.target.closest('.terminal-container')) {
