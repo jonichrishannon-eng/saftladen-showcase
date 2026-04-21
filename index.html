@@ -30,6 +30,7 @@
                 <a href="index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
                 <a href="dev/Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
                 <a href="dev/Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
+                <a href="dev/Handbuch.html" class="menu-link" data-text="GUIDE">GUIDE</a>
             </nav>
             <div class="jarvis-info">
                 SYSTEM: ACTIVE<br>
@@ -195,10 +196,12 @@
 
             // 2. CSV Data Query
             if (products.length > 0) {
-                // Direct hit on ArtNr
-                const directRow = products.find(p => p.ArtNr === search);
+                // Direct hit on ArtNr or Artikel-Nr.
+                const directRow = products.find(p => (p.ArtNr === search || p['Artikel-Nr.'] === search));
                 if (directRow) {
-                    finalMatch = { name: directRow.Name, preis: parseFloat(directRow.Preis.replace(',', '.')) };
+                    const rowName = directRow.Name || directRow.Artikelname;
+                    const rowPreis = directRow.Preis || directRow['Netto-VK'];
+                    finalMatch = { name: rowName, preis: parseFloat(rowPreis.toString().replace(',', '.')) };
                     score = 100;
                     debugLog.push("Direct hit: YES");
                 } else {
@@ -208,13 +211,16 @@
                         const cleanOFF = cleanString(offName);
 
                         products.forEach(row => {
-                            if (!row.Name) return;
-                            const cleanJTL = cleanString(row.Name);
+                            const rowName = row.Name || row.Artikelname;
+                            const rowPreis = row.Preis || row['Netto-VK'];
+                            if (!rowName) return;
+
+                            const cleanJTL = cleanString(rowName);
                             if (!cleanJTL) return;
 
                             const wordsOFF = offName.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
                             let matchedWords = 0;
-                            const targetLower = row.Name.toLowerCase();
+                            const targetLower = rowName.toLowerCase();
                             wordsOFF.forEach(w => {
                                 if (targetLower.includes(w)) matchedWords++;
                             });
@@ -227,7 +233,7 @@
                             const currentScore = (wordScore * 0.78) + (levScore * 0.22);
                             if (currentScore > score) {
                                 score = currentScore;
-                                finalMatch = { name: row.Name, preis: parseFloat(row.Preis.replace(',', '.')) };
+                                finalMatch = { name: rowName, preis: parseFloat(rowPreis.toString().replace(',', '.')) };
                             }
                         });
                         debugLog.push(`Best Score: ${score.toFixed(1)}%`);
