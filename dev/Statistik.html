@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>SaftladenSuite - Statistik</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/menu.css">
+</head>
+<body>
+    <input type="checkbox" id="menu-toggle">
+    <div class="menu-container">
+        <label for="menu-toggle" class="menu-button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+    </div>
+
+    <div class="menu-overlay">
+        <canvas id="menu-matrix-canvas"></canvas>
+        <div class="jarvis-ui">
+            <div class="circle-hud hud-1"></div>
+            <div class="circle-hud hud-2"></div>
+            <div class="circle-hud hud-3"></div>
+            <nav class="menu-nav">
+                <a href="../index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
+                <a href="Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
+                <a href="Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
+            </nav>
+            <div class="jarvis-info">
+                SYSTEM: ACTIVE<br>
+                ENCRYPTION: 256-BIT<br>
+                USER: ADMIN
+            </div>
+        </div>
+    </div>
+
+    <div class="scan-line"></div>
+    <a href="../index.html" class="logo">
+        <img src="https://iili.io/f8QkeA7.png" alt="Logo">
+        <span class="logo-text">SaftladenSuite</span>
+    </a>
+
+    <div class="content">
+        <h1 class="title aurora-text">SaftladenSuite pro max</h1>
+        <p class="subtitle">Live-Datenbank Artikelliste (CSV)</p>
+
+        <div class="table-container">
+            <table id="product-table">
+                <thead>
+                    <tr>
+                        <th>ArtNr</th>
+                        <th>Produktname</th>
+                        <th>Netto-VK</th>
+                        <th>Brutto (1.19)</th>
+                    </tr>
+                </thead>
+                <tbody id="product-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="../js/papaparse.min.js"></script>
+    <script src="../js/menu.js"></script>
+    <script>
+        async function loadProducts() {
+            try {
+                const response = await fetch('../produkte.csv');
+                if (!response.ok) throw new Error("CSV file not found");
+                const csvText = await response.text();
+
+                Papa.parse(csvText, {
+                    header: true,
+                    delimiter: ";",
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        const tbody = document.getElementById('product-table-body');
+                        tbody.innerHTML = '';
+
+                        results.data.forEach(product => {
+                            if (!product.Name || !product.Preis) return;
+
+                            const netPrice = parseFloat(product.Preis.replace(',', '.'));
+                            const grossPrice = netPrice * 1.19;
+
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${product.ArtNr || '---'}</td>
+                                <td>${product.Name}</td>
+                                <td>${netPrice.toLocaleString('de-DE', { minimumFractionDigits: 4 })} €</td>
+                                <td>${grossPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                });
+            } catch (err) {
+                console.error("Error loading products:", err);
+                document.getElementById('product-table-body').innerHTML = `<tr><td colspan="4" style="color:red;">Fehler beim Laden der CSV-Datei.</td></tr>`;
+            }
+        }
+
+        loadProducts();
+    </script>
+</body>
+</html>
