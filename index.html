@@ -70,32 +70,41 @@
         </div>
     </div>
 
-    <!-- SQL.js for local database -->
-    <script src="js/sql-wasm.js"></script>
+    <!-- PapaParse for CSV database -->
+    <script src="js/papaparse.min.js"></script>
     <script type="module">
         import { OpenFoodFacts } from 'https://esm.sh/@openfoodfacts/openfoodfacts-nodejs';
 
-        const config = {
-            locateFile: filename => `js/${filename}`
-        };
-
-        let db = null;
+        let products = [];
         const offClient = new OpenFoodFacts(window.fetch);
 
-        async function initDb() {
+        async function initData() {
             try {
-                const SQL = await initSqlJs(config);
-                const response = await fetch('saftladen.db');
-                if (!response.ok) throw new Error("Database file not found");
-                const buf = await response.arrayBuffer();
-                db = new SQL.Database(new Uint8Array(buf));
-                console.log("Database loaded successfully");
+                const response = await fetch('produkte.csv');
+                if (!response.ok) throw new Error("CSV file not found");
+                const csvText = await response.text();
+
+                return new Promise((resolve, reject) => {
+                    Papa.parse(csvText, {
+                        header: true,
+                        delimiter: ";",
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            products = results.data;
+                            console.log("CSV Data loaded:", products.length, "items");
+                            resolve();
+                        },
+                        error: function(err) {
+                            reject(err);
+                        }
+                    });
+                });
             } catch (err) {
-                console.error("Failed to load database:", err);
+                console.error("Failed to load data:", err);
             }
         }
 
-        initDb().then(() => {
+        initData().then(() => {
             const urlParams = new URLSearchParams(window.location.search);
             const searchQuery = urlParams.get('search');
             if (searchQuery) {
@@ -184,54 +193,45 @@
             }
             debugLog.push(`API: ${offName || "No name found on web"}`);
 
-            // 2. Database Query
-            if (db) {
-                try {
-                    // Direct hit on ArtNr (Barcode is NULL in DB now)
-                    const stmtDirect = db.prepare("SELECT a.fVKNetto, b.cName FROM tArtikel a LEFT JOIN tArtikelBeschreibung b ON a.kArtikel = b.kArtikel WHERE a.cArtNr = ?");
-                    stmtDirect.bind([search]);
-                    if (stmtDirect.step()) {
-                        const row = stmtDirect.getAsObject();
-                        finalMatch = { name: row.cName, preis: row.fVKNetto };
-                        score = 100;
-                        debugLog.push("Direct hit: YES");
-                    } else {
-                        debugLog.push("Direct hit: NO");
-                        if (offName) {
-                            debugLog.push("Fuzzy started...");
-                            const cleanOFF = cleanString(offName);
-                            const stmtFuzzy = db.prepare("SELECT b.cName, a.fVKNetto FROM tArtikel a JOIN tArtikelBeschreibung b ON a.kArtikel = b.kArtikel WHERE b.cName IS NOT NULL");
-                            
-                            while (stmtFuzzy.step()) {
-                                const row = stmtFuzzy.getAsObject();
-                                const cleanJTL = cleanString(row.cName);
-                                if (!cleanJTL) continue;
+            // 2. CSV Data Query
+            if (products.length > 0) {
+                // Direct hit on ArtNr
+                const directRow = products.find(p => p.ArtNr === search);
+                if (directRow) {
+                    finalMatch = { name: directRow.Name, preis: parseFloat(directRow.Preis.replace(',', '.')) };
+                    score = 100;
+                    debugLog.push("Direct hit: YES");
+                } else {
+                    debugLog.push("Direct hit: NO");
+                    if (offName) {
+                        debugLog.push("Fuzzy started...");
+                        const cleanOFF = cleanString(offName);
 
-                                const wordsOFF = offName.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-                                let matchedWords = 0;
-                                const targetLower = row.cName.toLowerCase();
-                                wordsOFF.forEach(w => {
-                                    if (targetLower.includes(w)) matchedWords++;
-                                });
-                                const wordScore = wordsOFF.length > 0 ? (matchedWords / wordsOFF.length) * 100 : 0;
+                        products.forEach(row => {
+                            if (!row.Name) return;
+                            const cleanJTL = cleanString(row.Name);
+                            if (!cleanJTL) return;
 
-                                const lev = levenshtein(cleanOFF, cleanJTL);
-                                const maxLen = Math.max(cleanOFF.length, cleanJTL.length);
-                                const levScore = maxLen > 0 ? (1 - lev / maxLen) * 100 : 0;
+                            const wordsOFF = offName.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+                            let matchedWords = 0;
+                            const targetLower = row.Name.toLowerCase();
+                            wordsOFF.forEach(w => {
+                                if (targetLower.includes(w)) matchedWords++;
+                            });
+                            const wordScore = wordsOFF.length > 0 ? (matchedWords / wordsOFF.length) * 100 : 0;
 
-                                const currentScore = (wordScore * 0.78) + (levScore * 0.22);
-                                if (currentScore > score) {
-                                    score = currentScore;
-                                    finalMatch = { name: row.cName, preis: row.fVKNetto };
-                                }
+                            const lev = levenshtein(cleanOFF, cleanJTL);
+                            const maxLen = Math.max(cleanOFF.length, cleanJTL.length);
+                            const levScore = maxLen > 0 ? (1 - lev / maxLen) * 100 : 0;
+
+                            const currentScore = (wordScore * 0.78) + (levScore * 0.22);
+                            if (currentScore > score) {
+                                score = currentScore;
+                                finalMatch = { name: row.Name, preis: parseFloat(row.Preis.replace(',', '.')) };
                             }
-                            stmtFuzzy.free();
-                            debugLog.push(`Best Score: ${score.toFixed(1)}%`);
-                        }
+                        });
+                        debugLog.push(`Best Score: ${score.toFixed(1)}%`);
                     }
-                    stmtDirect.free();
-                } catch (err) {
-                    debugLog.push(`DB ERROR: ${err.message}`);
                 }
             }
 

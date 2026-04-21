@@ -87,6 +87,38 @@ body {
   }
 }
 
+@keyframes aurora-1 {
+  0% { top: 0; right: 0; }
+  25% { top: -20px; right: -20px; }
+  50% { top: 0; right: 0; }
+  75% { top: 20px; right: 20px; }
+  100% { top: 0; right: 0; }
+}
+
+@keyframes aurora-2 {
+  0% { top: 0; left: 0; }
+  25% { top: 20px; left: -20px; }
+  50% { top: 0; left: 0; }
+  75% { top: -20px; left: 20px; }
+  100% { top: 0; left: 0; }
+}
+
+@keyframes aurora-3 {
+  0% { bottom: 0; left: 0; }
+  25% { bottom: -20px; left: 20px; }
+  50% { bottom: 0; left: 0; }
+  75% { bottom: 20px; left: -20px; }
+  100% { bottom: 0; left: 0; }
+}
+
+@keyframes aurora-4 {
+  0% { bottom: 0; right: 0; }
+  25% { bottom: 20px; right: 20px; }
+  50% { bottom: 0; right: 0; }
+  75% { bottom: -20px; right: -20px; }
+  100% { bottom: 0; right: 0; }
+}
+
 /* Barcode Input Styles */
 .barcode-container {
   background: rgba(255, 255, 255, 0.05);
@@ -185,6 +217,32 @@ body {
   letter-spacing: 2px;
   animation: aurora-text-anim 5s linear infinite;
   box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.barcode-btn::before,
+.barcode-btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  transform: translate(-50%, -50%);
+  filter: blur(20px);
+  opacity: 0.5;
+  z-index: -1;
+}
+
+.barcode-btn::before {
+  animation: aurora-1 6s linear infinite;
+  background: radial-gradient(circle, var(--clr-1), transparent);
+}
+
+.barcode-btn::after {
+  animation: aurora-3 8s linear infinite;
+  background: radial-gradient(circle, var(--clr-4), transparent);
 }
 
 .barcode-btn:hover {
