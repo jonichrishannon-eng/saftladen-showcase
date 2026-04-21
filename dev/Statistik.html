@@ -28,6 +28,7 @@
                 <a href="../index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
                 <a href="Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
                 <a href="Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
+                <a href="Handbuch.html" class="menu-link" data-text="GUIDE">GUIDE</a>
             </nav>
             <div class="jarvis-info">
                 SYSTEM: ACTIVE<br>
@@ -80,15 +81,19 @@
                         tbody.innerHTML = '';
 
                         results.data.forEach(product => {
-                            if (!product.Name || !product.Preis) return;
+                            const artNr = product.ArtNr || product['Artikel-Nr.'] || '---';
+                            const name = product.Name || product.Artikelname;
+                            const rawPreis = product.Preis || product['Netto-VK'];
 
-                            const netPrice = parseFloat(product.Preis.replace(',', '.'));
+                            if (!name || !rawPreis) return;
+
+                            const netPrice = parseFloat(rawPreis.toString().replace(',', '.'));
                             const grossPrice = netPrice * 1.19;
 
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
-                                <td>${product.ArtNr || '---'}</td>
-                                <td>${product.Name}</td>
+                                <td>${artNr}</td>
+                                <td>${name}</td>
                                 <td>${netPrice.toLocaleString('de-DE', { minimumFractionDigits: 4 })} €</td>
                                 <td>${grossPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
                             `;

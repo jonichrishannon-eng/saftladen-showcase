@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>SaftladenSuite - Kiosk Handbuch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <style>
+        .handbuch-content {
+            padding: 80px 40px;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            border: 1px solid var(--clr-1);
+            margin-top: 50px;
+        }
+        h2 { color: var(--clr-2); border-bottom: 1px solid var(--clr-2); padding-bottom: 10px; margin-top: 40px; }
+        .alert-box {
+            background: rgba(255, 0, 0, 0.2);
+            border-left: 5px solid red;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .success-box {
+            background: rgba(0, 255, 0, 0.1);
+            border-left: 5px solid var(--clr-2);
+            padding: 15px;
+            margin: 20px 0;
+        }
+        ul { line-height: 1.6; }
+        li { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <input type="checkbox" id="menu-toggle">
+    <div class="menu-container">
+        <label for="menu-toggle" class="menu-button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+    </div>
+
+    <div class="menu-overlay">
+        <canvas id="menu-matrix-canvas"></canvas>
+        <div class="jarvis-ui">
+            <div class="circle-hud hud-1"></div>
+            <div class="circle-hud hud-2"></div>
+            <div class="circle-hud hud-3"></div>
+            <nav class="menu-nav">
+                <a href="../index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
+                <a href="Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
+                <a href="Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
+                <a href="Handbuch.html" class="menu-link" data-text="GUIDE">GUIDE</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="scan-line"></div>
+    <a href="../index.html" class="logo">
+        <img src="https://iili.io/f8QkeA7.png" alt="Logo">
+        <span class="logo-text">SaftladenSuite</span>
+    </a>
+
+    <div class="content">
+        <h1 class="title aurora-text">Kiosk Handbuch</h1>
+
+        <div class="handbuch-content">
+            <p>Willkommen beim neuen Saftladen POS v1.3. Dieses System hilft Ihnen, Artikel schnell zu identifizieren und Preise abzugleichen.</p>
+
+            <h2>1. Artikel scannen</h2>
+            <ul>
+                <li>Klicken Sie auf das Eingabefeld im Scanner-Tab.</li>
+                <li>Scannen Sie den Barcode des Produkts.</li>
+                <li>Das System sucht automatisch in zwei Datenbanken:
+                    <ol>
+                        <li><strong>Lokal:</strong> Ihre JTL-Wawi Artikelliste.</li>
+                        <li><strong>Global:</strong> OpenFoodFacts Web-Datenbank.</li>
+                    </ol>
+                </li>
+            </ul>
+
+            <h2>2. Die Anzeige verstehen</h2>
+            <div class="success-box">
+                <strong>Grüner Modus:</strong> Der Artikel wurde in Ihrem System gefunden. Der Preis wird fett angezeigt.
+            </div>
+            <div class="alert-box">
+                <strong>Roter Modus (Red Alert):</strong>
+                <ul>
+                    <li>Der Artikel ist <strong>nicht</strong> in Ihrer JTL-Wawi hinterlegt.</li>
+                    <li>ODER: Die Menge (z.B. 0,5l vs 0,33l) weicht von der Web-Information ab.</li>
+                    <li>Prüfen Sie in diesem Fall den Artikel manuell!</li>
+                </ul>
+            </div>
+
+            <h2>3. Preise und Statistik</h2>
+            <p>Im Bereich "Analysis" (Statistik) sehen Sie alle aktuell importierten Artikel. Die Preise werden dort wie folgt berechnet:</p>
+            <ul>
+                <li><strong>Netto:</strong> Der Preis aus Ihrem System.</li>
+                <li><strong>Brutto:</strong> Der Verkaufspreis inkl. 19% MwSt.</li>
+            </ul>
+
+            <h2>4. Fehlerbehebung</h2>
+            <ul>
+                <li><strong>Scanner reagiert nicht?</strong> Klicken Sie einmal in das Feld "Hier scannen".</li>
+                <li><strong>Artikel fehlt?</strong> Stellen Sie sicher, dass der JTL-Export (Ameise) erfolgreich gelaufen ist.</li>
+            </ul>
+        </div>
+    </div>
+    <script src="../js/menu.js"></script>
+</body>
+</html>
