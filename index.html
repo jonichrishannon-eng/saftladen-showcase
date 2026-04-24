@@ -8,6 +8,47 @@
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/cyber-terminal.css">
     <link rel="stylesheet" href="css/menu.css">
+    <style>
+        .live-sync-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #444;
+            border-radius: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: #888;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .live-sync-indicator.active {
+            border-color: var(--clr-1);
+            color: var(--clr-1);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+        .indicator-dot {
+            width: 8px;
+            height: 8px;
+            background: #444;
+            border-radius: 50%;
+        }
+        .live-sync-indicator.active .indicator-dot {
+            background: var(--clr-1);
+            box-shadow: 0 0 8px var(--clr-1);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 
 <body>
@@ -29,6 +70,7 @@
             <nav class="menu-nav">
                 <a href="index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
                 <a href="dev/Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
+                <a href="dev/Connector.html" class="menu-link" data-text="CONNECTOR">CONNECTOR</a>
                 <a href="dev/Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
                 <a href="dev/Handbuch.html" class="menu-link" data-text="GUIDE">GUIDE</a>
             </nav>
@@ -49,6 +91,11 @@
     <a href="dev/Home.html" class="logo">
         <img src="https://iili.io/f8QkeA7.png" alt="Logo">
         <span class="logo-text">SaftladenSuite</span>
+    </a>
+
+    <a href="dev/Connector.html" id="sync-indicator" class="live-sync-indicator">
+        <span class="indicator-dot"></span>
+        <span id="sync-text">LIVE SYNC: INACTIVE</span>
     </a>
 
     <div class="content">
@@ -81,11 +128,21 @@
         const offClient = new OpenFoodFacts(window.fetch);
 
         async function initData() {
+            const indicator = document.getElementById('sync-indicator');
+            const syncText = document.getElementById('sync-text');
+
             try {
+                if (JTLService.getConnectorUrl()) {
+                    indicator.classList.add('active');
+                    syncText.innerText = 'LIVE SYNC: ACTIVE';
+                }
+
                 products = await JTLService.getProducts('produkte.csv');
                 console.log("Data loaded:", products.length, "items");
             } catch (err) {
                 console.error("Failed to load data:", err);
+                syncText.innerText = 'SYNC ERROR';
+                indicator.style.borderColor = '#ff4c4c';
             }
         }
 

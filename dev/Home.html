@@ -16,12 +16,7 @@
         }
         .guide-step {
             margin-bottom: 80px;
-            opacity: 0;
-            transform: translateY(50px);
-            transition: all 0.8s ease-out;
-        }
-        .guide-step.visible {
-            opacity: 1;
+            opacity: 1; /* Always visible as requested */
             transform: translateY(0);
         }
         .step-number {
@@ -65,6 +60,7 @@
             <nav class="menu-nav">
                 <a href="../index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
                 <a href="Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
+                <a href="Connector.html" class="menu-link" data-text="CONNECTOR">CONNECTOR</a>
                 <a href="Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
                 <a href="Handbuch.html" class="menu-link" data-text="GUIDE">GUIDE</a>
             </nav>
@@ -123,19 +119,8 @@
                 <div class="step-number">05</div>
                 <div class="step-content">
                     <h2>Live Cloud Sync</h2>
-                    <div class="sync-config-card" style="background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 12px; margin-top: 1rem; border: 1px solid var(--clr-1);">
-                        <h3>Verbindung konfigurieren</h3>
-                        <p style="font-size: 0.9rem; margin-left: 0;">Geben Sie Ihre Cloudflare Tunnel URL ein, um eine Live-Verbindung zu Ihrem JTL-Wawi herzustellen.</p>
-                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1rem;">
-                            <input type="text" id="api-url-input" placeholder="Cloudflare Tunnel URL" style="background: #000; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
-                            <input type="password" id="api-key-input" placeholder="API Key" style="background: #000; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
-                            <button id="save-api-btn" class="barcode-btn" style="padding: 10px 20px; font-size: 0.8rem; height: auto;">Speichern</button>
-                        </div>
-                        <div id="sync-status" style="margin-top: 1rem; font-family: monospace; font-size: 0.8rem; color: var(--clr-2);">
-                            STATUS: BEREIT
-                        </div>
-                        <button id="manual-sync-btn" class="barcode-btn" style="width: 100%; margin-top: 1rem; padding: 15px; font-size: 1rem; height: auto;">JETZT SYNCHRONISIEREN</button>
-                    </div>
+                    <p>Die Synchronisation mit Ihrem JTL-Wawi erfolgt über das dedizierte <strong>Connector-Menü</strong>. Dort können Sie die Tunnel-URL hinterlegen und manuelle Abgleiche starten.</p>
+                    <a href="Connector.html" class="barcode-btn" style="display: inline-block; margin-top: 1rem; padding: 15px 30px; height: auto; text-decoration: none; text-align: center;">ZUM CONNECTOR MENÜ</a>
                 </div>
             </div>
         </div>
@@ -143,38 +128,6 @@
 
     <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/dist/lenis.min.js"></script>
     <script src="../js/menu.js"></script>
-    <script type="module">
-        import { JTLService } from '../js/jtl-service.js';
-
-        const urlInput = document.getElementById('api-url-input');
-        const keyInput = document.getElementById('api-key-input');
-        const saveBtn = document.getElementById('save-api-btn');
-        const syncBtn = document.getElementById('manual-sync-btn');
-        const statusDiv = document.getElementById('sync-status');
-
-        // Load existing settings
-        urlInput.value = JTLService.getConnectorUrl();
-        keyInput.value = JTLService.getConnectorKey();
-
-        saveBtn.addEventListener('click', () => {
-            JTLService.setConnection(urlInput.value, keyInput.value);
-            statusDiv.innerText = 'KONFIGURATION GESPEICHERT';
-            setTimeout(() => statusDiv.innerText = 'STATUS: BEREIT', 2000);
-        });
-
-        syncBtn.addEventListener('click', async () => {
-            try {
-                statusDiv.innerText = 'SYNCHRONISIERE MIT JTL-WAWI...';
-                statusDiv.style.color = 'var(--clr-3)';
-                const result = await JTLService.sync();
-                statusDiv.innerText = `ERFOLGREICH: ${result.count} ARTIKEL IMPORTIERT`;
-                statusDiv.style.color = 'var(--clr-2)';
-            } catch (err) {
-                statusDiv.innerText = `FEHLER: ${err.message}`;
-                statusDiv.style.color = '#ff4c4c';
-            }
-        });
-    </script>
     <script>
         // Initialize Lenis for Smooth Scrolling
         const lenis = new Lenis();

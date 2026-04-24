@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>SaftladenSuite - JTL Connector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Lato&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/cyber-terminal.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <style>
+        .connector-config {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(0, 20, 0, 0.8);
+            border: 1px solid var(--clr-1);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+        }
+        .config-group {
+            margin-bottom: 1.5rem;
+        }
+        .config-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--clr-1);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+        }
+        .config-group input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #444;
+            color: #00ff41;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+        }
+        .config-group input:focus {
+            outline: none;
+            border-color: var(--clr-1);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+        .status-box {
+            background: rgba(0,0,0,0.5);
+            border-left: 4px solid var(--clr-1);
+            padding: 1rem;
+            margin-top: 2rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+        .sync-log {
+            height: 200px;
+            overflow-y: auto;
+            background: #050505;
+            padding: 10px;
+            margin-top: 1rem;
+            border: 1px solid #222;
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+        .log-entry { margin-bottom: 4px; }
+        .log-entry.success { color: #00ff41; }
+        .log-entry.error { color: #ff4c4c; }
+        .log-entry.info { color: #00d4ff; }
+    </style>
+</head>
+<body>
+    <input type="checkbox" id="menu-toggle">
+    <div class="menu-container">
+        <label for="menu-toggle" class="menu-button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+    </div>
+
+    <div class="menu-overlay">
+        <canvas id="menu-matrix-canvas"></canvas>
+        <div class="jarvis-ui">
+            <div class="circle-hud hud-1"></div>
+            <div class="circle-hud hud-2"></div>
+            <div class="circle-hud hud-3"></div>
+            <nav class="menu-nav">
+                <a href="../index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
+                <a href="Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
+                <a href="Connector.html" class="menu-link" data-text="CONNECTOR">CONNECTOR</a>
+                <a href="Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
+                <a href="Handbuch.html" class="menu-link" data-text="GUIDE">GUIDE</a>
+            </nav>
+            <div class="jarvis-info">
+                SYSTEM: ACTIVE<br>
+                ENCRYPTION: 256-BIT<br>
+                USER: ADMIN
+            </div>
+        </div>
+    </div>
+
+    <div class="background-effects">
+        <div class="grid-overlay"></div>
+        <div class="scan-line"></div>
+    </div>
+
+    <a href="../index.html" class="logo">
+        <img src="https://iili.io/f8QkeA7.png" alt="Logo">
+        <span class="logo-text">SaftladenSuite</span>
+    </a>
+
+    <div class="content">
+        <h1 class="title aurora-text">JTL Connector</h1>
+        <p class="subtitle">Live Database Synchronization</p>
+
+        <div class="connector-config terminal-container">
+            <div class="terminal-header">
+                <div class="terminal-title">CONNECTOR_SETTINGS_V1.0</div>
+            </div>
+            <div class="terminal-body" style="padding: 20px;">
+                <div class="config-group">
+                    <label>TUNNEL ENDPOINT URL</label>
+                    <input type="text" id="api-url-input" placeholder="https://your-tunnel.trycloudflare.com">
+                </div>
+                <div class="config-group">
+                    <label>SECURITY ACCESS TOKEN</label>
+                    <input type="password" id="api-key-input" placeholder="••••••••••••••••">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button id="save-api-btn" class="barcode-btn" style="flex: 1; height: 50px;">SAVE CONFIG</button>
+                    <button id="manual-sync-btn" class="barcode-btn" style="flex: 2; height: 50px;">INITIALIZE LIVE SYNC</button>
+                </div>
+
+                <div class="status-box">
+                    <div id="sync-status">SYSTEM STATUS: IDLE</div>
+                    <div class="sync-log" id="sync-log">
+                        <div class="log-entry info">[INFO] System initialized. Waiting for user action...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/papaparse.min.js"></script>
+    <script src="../js/menu.js"></script>
+    <script type="module">
+        import { JTLService } from '../js/jtl-service.js';
+
+        const urlInput = document.getElementById('api-url-input');
+        const keyInput = document.getElementById('api-key-input');
+        const saveBtn = document.getElementById('save-api-btn');
+        const syncBtn = document.getElementById('manual-sync-btn');
+        const statusDiv = document.getElementById('sync-status');
+        const logDiv = document.getElementById('sync-log');
+
+        function addLog(msg, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Load existing settings
+        urlInput.value = JTLService.getConnectorUrl();
+        keyInput.value = JTLService.getConnectorKey();
+
+        saveBtn.addEventListener('click', () => {
+            JTLService.setConnection(urlInput.value, keyInput.value);
+            statusDiv.innerText = 'SYSTEM STATUS: CONFIG_UPDATED';
+            addLog('Configuration saved to local storage.', 'success');
+        });
+
+        syncBtn.addEventListener('click', async () => {
+            try {
+                statusDiv.innerText = 'SYSTEM STATUS: SYNCING...';
+                addLog('Contacting Cloudflare Tunnel...', 'info');
+                const result = await JTLService.sync();
+                statusDiv.innerText = `SYSTEM STATUS: SYNC_COMPLETE (${result.count} ITEMS)`;
+                addLog(`Success: Synchronized ${result.count} products from JTL-Wawi.`, 'success');
+            } catch (err) {
+                statusDiv.innerText = `SYSTEM STATUS: ERROR`;
+                addLog(`Error: ${err.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
