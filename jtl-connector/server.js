@@ -113,5 +113,5 @@ app.get('/sync', auth, (req, res) => {
 
 app.listen(port, () => {
     console.log(`JTL-Connector listening at http://localhost:${port}`);
-    console.log(`Security: API_KEY is ${API_KEY === 'secret-token-123' ? 'using DEFAULT (Please change!)' : 'SET'}`);
+    console.log(`Security: API_KEY is ${API_KEY === 'ILOVECSSandWebDesign69420' ? 'using DEFAULT (Please change!)' : 'SET'}`);
 });
