@@ -19,7 +19,7 @@ const DB_SERVER = process.env.DB_SERVER || '(local)\\JTLWAWI';
 const DB_NAME = process.env.DB_NAME || 'eazybusiness';
 const DB_USER = process.env.DB_USER || 'sa';
 const DB_PASS = process.env.DB_PASS || 'sa04jtl';
-const API_KEY = process.env.API_KEY || 'secret-token-123';
+const API_KEY = process.env.API_KEY || 'ILOVECSSandWebDesign69420';
 const CACHE_TTL = parseInt(process.env.CACHE_TTL || '300000'); // Default 5 minutes
 
 const EXPORT_FILE = path.join(__dirname, 'export.csv');
