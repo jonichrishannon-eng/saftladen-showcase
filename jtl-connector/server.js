@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // Configuration from .env
-const JTL_AMEISE_PATH = process.env.JTL_AMEISE_PATH || 'C:\\Program Files (x86)\\JTL-Software\\JTL-Ameise.exe';
+const JTL_AMEISE_PATH = process.env.JTL_AMEISE_PATH || 'C:\\Program Files (x86)\\JTL-Software\\JTL-wawi-ameise.exe';
 const JTL_EXPORT_TEMPLATE = process.env.JTL_EXPORT_TEMPLATE || 'WebExport';
 const DB_SERVER = process.env.DB_SERVER || '(local)\\JTLWAWI';
 const DB_NAME = process.env.DB_NAME || 'eazybusiness';
