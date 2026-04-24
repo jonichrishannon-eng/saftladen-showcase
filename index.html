@@ -75,31 +75,15 @@
     <script src="js/papaparse.min.js"></script>
     <script type="module">
         import { OpenFoodFacts } from 'https://esm.sh/@openfoodfacts/openfoodfacts-nodejs';
+        import { JTLService } from './js/jtl-service.js';
 
         let products = [];
         const offClient = new OpenFoodFacts(window.fetch);
 
         async function initData() {
             try {
-                const response = await fetch('produkte.csv');
-                if (!response.ok) throw new Error("CSV file not found");
-                const csvText = await response.text();
-
-                return new Promise((resolve, reject) => {
-                    Papa.parse(csvText, {
-                        header: true,
-                        delimiter: ";",
-                        skipEmptyLines: true,
-                        complete: function(results) {
-                            products = results.data;
-                            console.log("CSV Data loaded:", products.length, "items");
-                            resolve();
-                        },
-                        error: function(err) {
-                            reject(err);
-                        }
-                    });
-                });
+                products = await JTLService.getProducts('produkte.csv');
+                console.log("Data loaded:", products.length, "items");
             } catch (err) {
                 console.error("Failed to load data:", err);
             }

@@ -118,11 +118,63 @@
                     <p>Überprüfen Sie Ihren Lagerbestand in der Statistik-Ansicht. Alle Daten werden über einen automatisierten JTL-Wawi Export synchronisiert und clientseitig verarbeitet.</p>
                 </div>
             </div>
+
+            <div class="guide-step">
+                <div class="step-number">05</div>
+                <div class="step-content">
+                    <h2>Live Cloud Sync</h2>
+                    <div class="sync-config-card" style="background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 12px; margin-top: 1rem; border: 1px solid var(--clr-1);">
+                        <h3>Verbindung konfigurieren</h3>
+                        <p style="font-size: 0.9rem; margin-left: 0;">Geben Sie Ihre Cloudflare Tunnel URL ein, um eine Live-Verbindung zu Ihrem JTL-Wawi herzustellen.</p>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 1rem;">
+                            <input type="text" id="api-url-input" placeholder="Cloudflare Tunnel URL" style="background: #000; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
+                            <input type="password" id="api-key-input" placeholder="API Key" style="background: #000; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
+                            <button id="save-api-btn" class="barcode-btn" style="padding: 10px 20px; font-size: 0.8rem; height: auto;">Speichern</button>
+                        </div>
+                        <div id="sync-status" style="margin-top: 1rem; font-family: monospace; font-size: 0.8rem; color: var(--clr-2);">
+                            STATUS: BEREIT
+                        </div>
+                        <button id="manual-sync-btn" class="barcode-btn" style="width: 100%; margin-top: 1rem; padding: 15px; font-size: 1rem; height: auto;">JETZT SYNCHRONISIEREN</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/dist/lenis.min.js"></script>
     <script src="../js/menu.js"></script>
+    <script type="module">
+        import { JTLService } from '../js/jtl-service.js';
+
+        const urlInput = document.getElementById('api-url-input');
+        const keyInput = document.getElementById('api-key-input');
+        const saveBtn = document.getElementById('save-api-btn');
+        const syncBtn = document.getElementById('manual-sync-btn');
+        const statusDiv = document.getElementById('sync-status');
+
+        // Load existing settings
+        urlInput.value = JTLService.getConnectorUrl();
+        keyInput.value = JTLService.getConnectorKey();
+
+        saveBtn.addEventListener('click', () => {
+            JTLService.setConnection(urlInput.value, keyInput.value);
+            statusDiv.innerText = 'KONFIGURATION GESPEICHERT';
+            setTimeout(() => statusDiv.innerText = 'STATUS: BEREIT', 2000);
+        });
+
+        syncBtn.addEventListener('click', async () => {
+            try {
+                statusDiv.innerText = 'SYNCHRONISIERE MIT JTL-WAWI...';
+                statusDiv.style.color = 'var(--clr-3)';
+                const result = await JTLService.sync();
+                statusDiv.innerText = `ERFOLGREICH: ${result.count} ARTIKEL IMPORTIERT`;
+                statusDiv.style.color = 'var(--clr-2)';
+            } catch (err) {
+                statusDiv.innerText = `FEHLER: ${err.message}`;
+                statusDiv.style.color = '#ff4c4c';
+            }
+        });
+    </script>
     <script>
         // Initialize Lenis for Smooth Scrolling
         const lenis = new Lenis();
