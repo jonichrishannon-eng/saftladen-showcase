@@ -27,7 +27,7 @@ export const JTLService = {
             headers: {
                 'x-api-key': key,
                 'ngrok-skip-browser-warning': 'true', // For ngrok
-                'cf-skip-browser-warning': 'true'     # For Cloudflare
+                'cf-skip-browser-warning': 'true'     // For Cloudflare
             }
         });
 
