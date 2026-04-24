@@ -46,7 +46,11 @@
 
     <div class="content">
         <h1 class="title aurora-text">SaftladenSuite pro max</h1>
-        <p class="subtitle">Live-Datenbank Artikelliste (CSV)</p>
+        <p class="subtitle">Live-Datenbank Artikelliste</p>
+
+        <div id="sync-indicator" style="font-family: monospace; font-size: 0.8rem; color: var(--clr-1); margin-bottom: 10px;">
+            VERBINDUNG: LOKAL (CSV)
+        </div>
 
         <div class="table-container">
             <table id="product-table">
@@ -65,45 +69,44 @@
     </div>
     <script src="../js/papaparse.min.js"></script>
     <script src="../js/menu.js"></script>
-    <script>
+    <script type="module">
+        import { JTLService } from '../js/jtl-service.js';
+
         async function loadProducts() {
+            const indicator = document.getElementById('sync-indicator');
             try {
-                const response = await fetch('../produkte.csv');
-                if (!response.ok) throw new Error("CSV file not found");
-                const csvText = await response.text();
+                const products = await JTLService.getProducts('../produkte.csv');
 
-                Papa.parse(csvText, {
-                    header: true,
-                    delimiter: ";",
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        const tbody = document.getElementById('product-table-body');
-                        tbody.innerHTML = '';
+                if (sessionStorage.getItem('jtl_live_data')) {
+                    indicator.innerText = 'VERBINDUNG: LIVE (API)';
+                    indicator.style.color = 'var(--clr-2)';
+                }
 
-                        results.data.forEach(product => {
-                            const artNr = product.ArtNr || product['Artikel-Nr.'] || '---';
-                            const name = product.Name || product.Artikelname;
-                            const rawPreis = product.Preis || product['Netto-VK'];
+                const tbody = document.getElementById('product-table-body');
+                tbody.innerHTML = '';
 
-                            if (!name || !rawPreis) return;
+                products.forEach(product => {
+                    const artNr = product.ArtNr || '---';
+                    const name = product.Name;
+                    const rawPreis = product.Preis;
 
-                            const netPrice = parseFloat(rawPreis.toString().replace(',', '.'));
-                            const grossPrice = netPrice * 1.19;
+                    if (!name || !rawPreis) return;
 
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td>${artNr}</td>
-                                <td>${name}</td>
-                                <td>${netPrice.toLocaleString('de-DE', { minimumFractionDigits: 4 })} €</td>
-                                <td>${grossPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
-                    }
+                    const netPrice = parseFloat(rawPreis.toString().replace(',', '.'));
+                    const grossPrice = netPrice * 1.19;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${artNr}</td>
+                        <td>${name}</td>
+                        <td>${netPrice.toLocaleString('de-DE', { minimumFractionDigits: 4 })} €</td>
+                        <td>${grossPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
+                    `;
+                    tbody.appendChild(tr);
                 });
             } catch (err) {
                 console.error("Error loading products:", err);
-                document.getElementById('product-table-body').innerHTML = `<tr><td colspan="4" style="color:red;">Fehler beim Laden der CSV-Datei.</td></tr>`;
+                document.getElementById('product-table-body').innerHTML = `<tr><td colspan="4" style="color:red;">Fehler beim Laden der Daten.</td></tr>`;
             }
         }
 
