@@ -239,9 +239,7 @@
                 // Direct hit on ArtNr or Artikel-Nr.
                 const directRow = products.find(p => (p.ArtNr === search || p['Artikel-Nr.'] === search));
                 if (directRow) {
-                    const rowName = directRow.Name || directRow.Artikelname;
-                    const rowPreis = directRow.Preis || directRow['Netto-VK'];
-                    finalMatch = { name: rowName, preis: parseFloat(rowPreis.toString().replace(',', '.')) };
+                    finalMatch = directRow;
                     score = 100;
                     debugLog.push("Direct hit: YES");
                 } else {
@@ -252,7 +250,6 @@
 
                         products.forEach(row => {
                             const rowName = row.Name || row.Artikelname;
-                            const rowPreis = row.Preis || row['Netto-VK'];
                             if (!rowName) return;
 
                             const cleanJTL = cleanString(rowName);
@@ -273,7 +270,7 @@
                             const currentScore = (wordScore * 0.78) + (levScore * 0.22);
                             if (currentScore > score) {
                                 score = currentScore;
-                                finalMatch = { name: rowName, preis: parseFloat(rowPreis.toString().replace(',', '.')) };
+                                finalMatch = row;
                             }
                         });
                         debugLog.push(`Best Score: ${score.toFixed(1)}%`);
@@ -281,7 +278,7 @@
                 }
             }
 
-            const qMismatch = (finalMatch && offData && offData.quantity) ? hasQuantityMismatch(finalMatch.name, offData.quantity) : false;
+            const qMismatch = (finalMatch && offData && offData.quantity) ? hasQuantityMismatch(finalMatch.Name, offData.quantity) : false;
             if (qMismatch) debugLog.push("WARNING: Quantity Mismatch detected!");
 
             const isRedTheme = (score < 45 || qMismatch);
@@ -336,12 +333,12 @@
                         ` : ''}
 
                         <div class="cyber-product-name">
-                            ${isRedTheme ? (offName || 'UNKNOWN') : (finalMatch ? finalMatch.name : (offName || 'UNKNOWN'))}
+                            ${isRedTheme ? (offName || 'UNKNOWN') : (finalMatch ? finalMatch.Name : (offName || 'UNKNOWN'))}
                         </div>
 
                         ${(!isRedTheme && finalMatch) ? `
                             <div class="cyber-price-tag">
-                                ${(finalMatch.preis * 1.19).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                                ${(parseFloat(finalMatch.Preis.toString().replace(',', '.'))).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                             </div>
                         ` : '<div class="cyber-price-tag glitch">NO_PRICE</div>'}
 
