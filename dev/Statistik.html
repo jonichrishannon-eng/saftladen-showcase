@@ -78,10 +78,8 @@
             try {
                 const products = await JTLService.getProducts('../produkte.csv');
 
-                if (sessionStorage.getItem('jtl_live_data')) {
-                    indicator.innerText = 'VERBINDUNG: LIVE (API)';
-                    indicator.style.color = 'var(--clr-2)';
-                }
+                indicator.innerText = 'DATABASE STATUS: ONLINE';
+                indicator.style.color = 'var(--clr-1)';
 
                 const tbody = document.getElementById('product-table-body');
                 tbody.innerHTML = '';

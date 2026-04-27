@@ -132,16 +132,15 @@
             const syncText = document.getElementById('sync-text');
 
             try {
-                if (JTLService.getConnectorUrl()) {
-                    indicator.classList.add('active');
-                    syncText.innerText = 'LIVE SYNC: ACTIVE';
-                }
+                indicator.classList.add('active');
+                syncText.innerText = 'DATABASE: SYNCED';
 
                 products = await JTLService.getProducts('produkte.csv');
                 console.log("Data loaded:", products.length, "items");
             } catch (err) {
                 console.error("Failed to load data:", err);
-                syncText.innerText = 'SYNC ERROR';
+                syncText.innerText = 'DATABASE: OFFLINE';
+                indicator.classList.remove('active');
                 indicator.style.borderColor = '#ff4c4c';
             }
         }

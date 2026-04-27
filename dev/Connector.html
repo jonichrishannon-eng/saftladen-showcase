@@ -2,66 +2,103 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>SaftladenSuite - JTL Connector</title>
+    <title>SaftladenSuite - Secure Connector</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Lato&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/cyber-terminal.css">
     <link rel="stylesheet" href="../css/menu.css">
     <style>
-        .connector-config {
+        .auth-container {
             max-width: 800px;
             margin: 2rem auto;
             padding: 2rem;
-            background: rgba(0, 20, 0, 0.8);
+            background: rgba(0, 5, 0, 0.9);
             border: 1px solid var(--clr-1);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.15);
+            position: relative;
+            overflow: hidden;
         }
-        .config-group {
-            margin-bottom: 1.5rem;
+        .auth-container::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--clr-1), transparent);
+            animation: scanline-horizontal 4s linear infinite;
         }
-        .config-group label {
-            display: block;
-            margin-bottom: 0.5rem;
+        @keyframes scanline-horizontal {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .terminal-input-group {
+            margin: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .terminal-input-group label {
             color: var(--clr-1);
             font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
         }
-        .config-group input {
-            width: 100%;
-            background: #000;
-            border: 1px solid #444;
+        .terminal-input {
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #333;
             color: #00ff41;
-            padding: 12px;
-            border-radius: 4px;
+            padding: 15px;
             font-family: 'Fira Code', monospace;
-        }
-        .config-group input:focus {
+            font-size: 1rem;
             outline: none;
-            border-color: var(--clr-1);
-            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+            transition: border-color 0.3s;
         }
-        .status-box {
-            background: rgba(0,0,0,0.5);
-            border-left: 4px solid var(--clr-1);
-            padding: 1rem;
-            margin-top: 2rem;
+        .terminal-input:focus {
+            border-color: var(--clr-1);
+        }
+
+        .upload-zone {
+            border: 2px dashed #333;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(0, 255, 65, 0.02);
+            margin-top: 1rem;
+        }
+        .upload-zone:hover {
+            border-color: var(--clr-1);
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .upload-zone.drag-over {
+            border-color: var(--clr-2);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .hidden { display: none !important; }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--clr-1);
+        }
+        .status-msg {
             font-family: 'Fira Code', monospace;
             font-size: 0.85rem;
+            margin-top: 15px;
         }
-        .sync-log {
-            height: 200px;
-            overflow-y: auto;
-            background: #050505;
-            padding: 10px;
-            margin-top: 1rem;
-            border: 1px solid #222;
-            font-size: 0.75rem;
-            color: #aaa;
-        }
-        .log-entry { margin-bottom: 4px; }
-        .log-entry.success { color: #00ff41; }
-        .log-entry.error { color: #ff4c4c; }
-        .log-entry.info { color: #00d4ff; }
+        .success { color: var(--clr-1); }
+        .error { color: #ff4c4c; }
+        .info { color: var(--clr-2); }
     </style>
 </head>
 <body>
@@ -88,9 +125,9 @@
                 <a href="Handbuch.html" class="menu-link" data-text="GUIDE">GUIDE</a>
             </nav>
             <div class="jarvis-info">
-                SYSTEM: ACTIVE<br>
-                ENCRYPTION: 256-BIT<br>
-                USER: ADMIN
+                AUTHENTICATION: REQUIRED<br>
+                LEVEL: 4<br>
+                ENCRYPTION: AES-256
             </div>
         </div>
     </div>
@@ -106,80 +143,157 @@
     </a>
 
     <div class="content">
-        <h1 class="title aurora-text">JTL Connector</h1>
-        <p class="subtitle">Live Database Synchronization</p>
+        <h1 class="title aurora-text">Secure Database Access</h1>
+        <p class="subtitle">GitHub Collaborator Authorization Required</p>
 
-        <div class="connector-config terminal-container">
+        <!-- STEP 1: LOGIN -->
+        <div id="login-view" class="auth-container">
             <div class="terminal-header">
-                <div class="terminal-title">CONNECTOR_SETTINGS_V1.0</div>
+                <div class="terminal-title">SYS_AUTH_V4.0</div>
             </div>
             <div class="terminal-body" style="padding: 20px;">
-                <div class="config-group">
-                    <label>TUNNEL ENDPOINT URL</label>
-                    <input type="text" id="api-url-input" placeholder="https://your-tunnel.trycloudflare.com">
+                <p style="font-size: 0.9rem; color: #aaa;">Bitte geben Sie Ihren GitHub Personal Access Token (PAT) ein, um Änderungen an der Datenbank vorzunehmen. Nur Repository-Collaborator sind berechtigt.</p>
+                <div class="terminal-input-group">
+                    <label>GITHUB_TOKEN</label>
+                    <input type="password" id="gh-token-input" class="terminal-input" placeholder="ghp_xxxxxxxxxxxx">
                 </div>
-                <div class="config-group">
-                    <label>SECURITY ACCESS TOKEN</label>
-                    <input type="password" id="api-key-input" placeholder="••••••••••••••••">
-                </div>
+                <button id="auth-btn" class="barcode-btn" style="width: 100%; height: 50px;">INITIALIZE SECURE LOGIN</button>
+                <div id="login-status" class="status-msg"></div>
+            </div>
+        </div>
 
-                <div style="display: flex; gap: 10px;">
-                    <button id="save-api-btn" class="barcode-btn" style="flex: 1; height: 50px;">SAVE CONFIG</button>
-                    <button id="manual-sync-btn" class="barcode-btn" style="flex: 2; height: 50px;">INITIALIZE LIVE SYNC</button>
-                </div>
-
-                <div class="status-box">
-                    <div id="sync-status">SYSTEM STATUS: IDLE</div>
-                    <div class="sync-log" id="sync-log">
-                        <div class="log-entry info">[INFO] System initialized. Waiting for user action...</div>
+        <!-- STEP 2: UPLOAD -->
+        <div id="upload-view" class="auth-container hidden">
+            <div class="terminal-header">
+                <div class="terminal-title">SECURE_DATA_UPLOADER</div>
+                <button id="logout-btn" style="background: transparent; border: 1px solid #444; color: #888; cursor: pointer; font-size: 0.7rem; padding: 2px 8px;">LOGOUT</button>
+            </div>
+            <div class="terminal-body" style="padding: 20px;">
+                <div class="user-badge">
+                    <img id="user-avatar" class="user-avatar" src="" alt="Avatar">
+                    <div>
+                        <div id="user-name" style="color: #fff; font-weight: bold;">User Name</div>
+                        <div id="user-status" class="success" style="font-size: 0.7rem;">✓ AUTHORIZED COLLABORATOR</div>
                     </div>
+                </div>
+
+                <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 1rem;">Laden Sie eine neue <code>produkte.csv</code> hoch, um den Scanner weltweit zu aktualisieren. (Format: Semicolon getrennt, UTF-8)</p>
+
+                <div id="drop-zone" class="upload-zone">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">📄</div>
+                    <div style="color: var(--clr-1); font-family: 'Fira Code', monospace;">Drag & Drop produkte.csv</div>
+                    <div style="color: #555; font-size: 0.7rem;">ODER KLICKEN ZUM AUSWÄHLEN</div>
+                    <input type="file" id="file-input" accept=".csv" class="hidden">
+                </div>
+
+                <div id="upload-status" class="status-msg"></div>
+
+                <div style="margin-top: 2rem; border-top: 1px solid #222; padding-top: 1rem;">
+                    <h3 style="color: var(--clr-2); font-size: 0.8rem; margin-bottom: 0.5rem;">JTL-AMEISE EXPORT ANLEITUNG:</h3>
+                    <ul style="color: #666; font-size: 0.7rem; line-height: 1.4; padding-left: 15px;">
+                        <li>Template: "Artikel" (Items)</li>
+                        <li>Felder: ArtNr (Artikelnummer), Name (Artikelname), Preis (VK Brutto)</li>
+                        <li>Format: Semicolon (;) getrennt, UTF-8</li>
+                        <li>Speichern unter: <code>produkte.csv</code></li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="../js/papaparse.min.js"></script>
     <script src="../js/menu.js"></script>
     <script type="module">
-        import { JTLService } from '../js/jtl-service.js';
+        import { GitHubService } from '../js/github-service.js';
 
-        const urlInput = document.getElementById('api-url-input');
-        const keyInput = document.getElementById('api-key-input');
-        const saveBtn = document.getElementById('save-api-btn');
-        const syncBtn = document.getElementById('manual-sync-btn');
-        const statusDiv = document.getElementById('sync-status');
-        const logDiv = document.getElementById('sync-log');
+        const loginView = document.getElementById('login-view');
+        const uploadView = document.getElementById('upload-view');
+        const tokenInput = document.getElementById('gh-token-input');
+        const authBtn = document.getElementById('auth-btn');
+        const loginStatus = document.getElementById('login-status');
+        const logoutBtn = document.getElementById('logout-btn');
 
-        function addLog(msg, type = 'info') {
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            logDiv.appendChild(entry);
-            logDiv.scrollTop = logDiv.scrollHeight;
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const uploadStatus = document.getElementById('upload-status');
+
+        async function checkAuth() {
+            const token = GitHubService.getToken();
+            if (!token) return;
+
+            try {
+                loginStatus.innerText = "Verifying authorization...";
+                const isCollaborator = await GitHubService.checkCollaboration(token);
+                if (isCollaborator) {
+                    const user = await GitHubService.getUser(token);
+                    showUpload(user);
+                } else {
+                    GitHubService.logout();
+                    loginStatus.innerHTML = "<span class='error'>Access Denied: You are not a collaborator.</span>";
+                }
+            } catch (err) {
+                GitHubService.logout();
+                loginStatus.innerHTML = `<span class='error'>Login Failed: ${err.message}</span>`;
+            }
         }
 
-        // Load existing settings
-        urlInput.value = JTLService.getConnectorUrl();
-        keyInput.value = JTLService.getConnectorKey();
+        function showUpload(user) {
+            loginView.classList.add('hidden');
+            uploadView.classList.remove('hidden');
+            document.getElementById('user-avatar').src = user.avatar_url;
+            document.getElementById('user-name').innerText = user.login;
+        }
 
-        saveBtn.addEventListener('click', () => {
-            JTLService.setConnection(urlInput.value, keyInput.value);
-            statusDiv.innerText = 'SYSTEM STATUS: CONFIG_UPDATED';
-            addLog('Configuration saved to local storage.', 'success');
+        authBtn.addEventListener('click', async () => {
+            const token = tokenInput.value.trim();
+            if (!token) return;
+            GitHubService.setToken(token);
+            await checkAuth();
         });
 
-        syncBtn.addEventListener('click', async () => {
-            try {
-                statusDiv.innerText = 'SYSTEM STATUS: SYNCING...';
-                addLog('Contacting Cloudflare Tunnel...', 'info');
-                const result = await JTLService.sync();
-                statusDiv.innerText = `SYSTEM STATUS: SYNC_COMPLETE (${result.count} ITEMS)`;
-                addLog(`Success: Synchronized ${result.count} products from JTL-Wawi.`, 'success');
-            } catch (err) {
-                statusDiv.innerText = `SYSTEM STATUS: ERROR`;
-                addLog(`Error: ${err.message}`, 'error');
+        logoutBtn.addEventListener('click', () => {
+            GitHubService.logout();
+            location.reload();
+        });
+
+        // File Upload Logic
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        async function handleFile(file) {
+            if (!file || !file.name.endsWith('.csv')) {
+                uploadStatus.innerHTML = "<span class='error'>Ungültige Datei. Nur .csv erlaubt.</span>";
+                return;
             }
-        });
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const content = e.target.result;
+                try {
+                    uploadStatus.innerHTML = "<span class='info'>Uploading database to GitHub...</span>";
+                    await GitHubService.uploadCSV(GitHubService.getToken(), content);
+                    uploadStatus.innerHTML = "<span class='success'>✓ SUCCESS: Database updated. Scanner will sync in ~30s.</span>";
+                } catch (err) {
+                    uploadStatus.innerHTML = `<span class='error'>UPLOAD FAILED: ${err.message}</span>`;
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        checkAuth();
     </script>
 </body>
 </html>
