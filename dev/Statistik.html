@@ -27,6 +27,7 @@
             <nav class="menu-nav">
                 <a href="../index.html" class="menu-link" data-text="SCANNER">SCANNER</a>
                 <a href="Home.html" class="menu-link" data-text="DASHBOARD">DASHBOARD</a>
+                <a href="Connector.html" class="menu-link" data-text="CONNECTOR">CONNECTOR</a>
                 <a href="Statistik.html" class="menu-link" data-text="ANALYSIS">ANALYSIS</a>
                 <a href="Handbuch.html" class="menu-link" data-text="GUIDE">GUIDE</a>
             </nav>
@@ -77,10 +78,8 @@
             try {
                 const products = await JTLService.getProducts('../produkte.csv');
 
-                if (sessionStorage.getItem('jtl_live_data')) {
-                    indicator.innerText = 'VERBINDUNG: LIVE (API)';
-                    indicator.style.color = 'var(--clr-2)';
-                }
+                indicator.innerText = 'DATABASE STATUS: ONLINE';
+                indicator.style.color = 'var(--clr-1)';
 
                 const tbody = document.getElementById('product-table-body');
                 tbody.innerHTML = '';
