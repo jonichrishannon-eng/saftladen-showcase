@@ -59,8 +59,7 @@
                     <tr>
                         <th>ArtNr</th>
                         <th>Produktname</th>
-                        <th>Netto-VK</th>
-                        <th>Brutto (1.19)</th>
+                        <th>Preis (Brutto)</th>
                     </tr>
                 </thead>
                 <tbody id="product-table-body">
@@ -91,15 +90,13 @@
 
                     if (!name || !rawPreis) return;
 
-                    const netPrice = parseFloat(rawPreis.toString().replace(',', '.'));
-                    const grossPrice = netPrice * 1.19;
+                    const price = parseFloat(rawPreis.toString().replace(',', '.'));
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${artNr}</td>
                         <td>${name}</td>
-                        <td>${netPrice.toLocaleString('de-DE', { minimumFractionDigits: 4 })} €</td>
-                        <td>${grossPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
+                        <td>${price.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
                     `;
                     tbody.appendChild(tr);
                 });
