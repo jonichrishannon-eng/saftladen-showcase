@@ -156,11 +156,32 @@ class CyberTerminal {
             case 0: // Close
                 this.triggerScreenGlitch(terminal);
                 break;
-            case 1: // Minimize
+            case 1: // Minimize -> Clean Scan
+                // Visual feedback
                 terminal.style.transform = 'scaleY(0.1)';
+                terminal.style.opacity = '0';
+
                 setTimeout(() => {
+                    // Clear search input
+                    const searchInput = document.getElementById('search');
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.focus();
+                    }
+
+                    // Clear results
+                    const resultsArea = document.getElementById('results-area');
+                    if (resultsArea) {
+                        resultsArea.innerHTML = '';
+                    }
+
+                    // Reset theme if necessary
+                    document.body.classList.remove('red-alert-theme');
+
+                    // Restore visual state
                     terminal.style.transform = 'scaleY(1)';
-                }, 800);
+                    terminal.style.opacity = '1';
+                }, 400);
                 break;
             case 2: // Maximize
                 terminal.classList.toggle('maximized');

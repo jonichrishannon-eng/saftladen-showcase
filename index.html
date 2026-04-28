@@ -121,11 +121,9 @@
     <!-- PapaParse for CSV database -->
     <script src="js/papaparse.min.js"></script>
     <script type="module">
-        import { OpenFoodFacts } from 'https://esm.sh/@openfoodfacts/openfoodfacts-nodejs';
         import { JTLService } from './js/jtl-service.js';
 
         let products = [];
-        const offClient = new OpenFoodFacts(window.fetch);
 
         async function initData() {
             const indicator = document.getElementById('sync-indicator');
@@ -212,27 +210,45 @@
             let offName = "";
             let finalMatch = null;
             let score = 0;
+            let apiMethod = "NONE";
 
-            // 1. API Query (OpenFoodFacts JS SDK)
-            try {
-                const { data, error } = await offClient.getProductV3(search);
-                if (data && data.product) {
-                    offData = data.product;
-                    const brands = offData.brands || "";
-                    const name = offData.product_name_de || offData.product_name || "";
-                    if (brands && !name.toLowerCase().includes(brands.toLowerCase())) {
-                        let brandShort = brands.split(',')[0].trim();
-                        offName = `${brandShort} ${name}`.trim();
-                    } else {
-                        offName = name.trim();
+            // 1. API Query (Fallback Chain)
+            const apis = [
+                { name: 'OpenFoodFacts', host: 'world.openfoodfacts.org' },
+                { name: 'OpenProductFacts', host: 'world.openproductfacts.org' },
+                { name: 'OpenBeautyFacts', host: 'world.openbeautyfacts.org' },
+                { name: 'OpenPetFacts', host: 'world.openpetfacts.org' }
+            ];
+
+            for (const api of apis) {
+                try {
+                    const response = await fetch(`https://${api.host}/api/v3/product/${search}.json`);
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result && result.product) {
+                            offData = result.product;
+                            apiMethod = api.name;
+
+                            const brands = offData.brands || "";
+                            const name = offData.product_name_de || offData.product_name || "";
+                            if (brands && !name.toLowerCase().includes(brands.toLowerCase())) {
+                                let brandShort = brands.split(',')[0].trim();
+                                offName = `${brandShort} ${name}`.trim();
+                            } else {
+                                offName = name.trim();
+                            }
+                            break;
+                        }
                     }
-                } else if (error) {
-                    debugLog.push(`API Warning: ${error}`);
+                } catch (err) {
+                    console.error(`Error fetching from ${api.name}:`, err);
                 }
-            } catch (err) {
-                debugLog.push(`API Error: ${err.message}`);
             }
-            debugLog.push(`API: ${offName || "No name found on web"}`);
+
+            if (apiMethod !== "NONE") {
+                debugLog.push(`Api Method: ${apiMethod}`);
+            }
+            debugLog.push(`API Result: ${offName || "No name found on web"}`);
 
             // 2. CSV Data Query
             if (products.length > 0) {
